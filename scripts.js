@@ -629,65 +629,29 @@ function navAnimationOnScroll() {
 // List Timer Animation
 function listTimerAnimation() {
   const containers = document.querySelectorAll(".list-timer_inner_list");
+  
   if (containers.length) {
     containers.forEach((container) => {
-      const listItems = container.querySelectorAll(
-        ".list-timer_inner_list_item"
-      );
-
-      if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
-        console.error("GSAP and/or ScrollTrigger not loaded");
-        return;
-      }
-
-      const duration = 8;
-      let timeline;
+      const listItems = container.querySelectorAll(".list-timer_inner_list_item");
+      let activeItem = listItems[0]; // Default active item is the first one
       let isPaused = false;
-      let activeItem = null;
-      let activeAnimation = null;
-      let activeIndex = 0; // Track the index of the current active item
+      
+      // Set up default state: first item active
+      listItems.forEach((item, index) => {
+        const circle = item.querySelector("circle");
+        if (!circle) {
+          console.warn(`Circle element not found in item ${index}`);
+          return;
+        }
+        if (index === 0) {
+          item.classList.add("is-active"); // First item is active
+          gsap.set(circle, { strokeDashoffset: 0 }); // Fully fill the first item's circle
+        } else {
+          gsap.set(circle, { strokeDashoffset: 101 }); // Reset others
+        }
+      });
 
-      function createTimeline(startIndex = 0) {
-        if (timeline) timeline.kill();
-
-        timeline = gsap.timeline({
-          repeat: -1,
-          onComplete: () => timeline.restart(),
-        });
-
-        listItems.forEach((item, index) => {
-          const circle = item.querySelector("circle");
-
-          if (!circle) {
-            console.warn(`Circle element not found in item ${index}`);
-            return;
-          }
-
-          timeline
-            .to(item, {
-              duration: 0.1,
-              onStart: () => {
-                listItems.forEach((i) => i.classList.remove("is-active"));
-                item.classList.add("is-active");
-                activeIndex = index; // Store current active index
-              },
-            })
-            .to(circle, {
-              strokeDashoffset: 0,
-              duration: duration,
-              ease: "linear",
-              onComplete: () => {
-                circle.style.strokeDashoffset = "101";
-              },
-            });
-        });
-
-        timeline.seek(startIndex * (duration + 0.1)); // Resume from the correct item
-        return timeline;
-      }
-
-      let activeTimeline = createTimeline();
-
+      // Handle item click to set active state
       listItems.forEach((item, index) => {
         const circle = item.querySelector("circle");
 
@@ -697,54 +661,36 @@ function listTimerAnimation() {
         }
 
         item.addEventListener("click", () => {
-          if (isPaused && activeItem === item) {
-            // Resume the animation from the currently active item
-            isPaused = false;
-            activeItem = null;
-            activeAnimation?.kill();
+          if (activeItem !== item) {
+            // Deactivate previous active item
+            activeItem.classList.remove("is-active");
+            gsap.set(activeItem.querySelector("circle"), { strokeDashoffset: 101 });
 
-            // Reset strokeDashoffset to allow animation restart
-            circle.style.strokeDashoffset = "101";
-
-            // Create a new timeline starting from the paused item
-            activeTimeline = createTimeline(activeIndex);
-            activeTimeline.play();
-          } else {
-            // Pause the cycle and set the clicked item as active
-            activeTimeline.pause();
-            isPaused = true;
-            activeItem = item;
-            activeIndex = index; // Store the active item's index
-
-            listItems.forEach((i) => i.classList.remove("is-active"));
+            // Activate clicked item
             item.classList.add("is-active");
-
-            // Reset all circles
-            listItems.forEach((i) => {
-              const circleElement = i.querySelector("circle");
-              if (circleElement) {
-                circleElement.style.strokeDashoffset = "101";
-              }
-            });
-
-            // Instantly fill the clicked item's progress circle
             gsap.set(circle, { strokeDashoffset: 0 });
+
+            // Update activeItem reference
+            activeItem = item;
           }
         });
       });
 
-      try {
-        ScrollTrigger.create({
-          trigger: ".list-timer_inner_list",
-          start: "top center",
-          onEnter: () => !isPaused && activeTimeline?.play(),
-          onLeave: () => activeTimeline?.pause(),
-          onEnterBack: () => !isPaused && activeTimeline?.play(),
-          onLeaveBack: () => activeTimeline?.pause(),
-        });
-      } catch (error) {
-        console.error("Error creating ScrollTrigger:", error);
-      }
+      // Click outside any item to reset to the first item
+      document.addEventListener("click", (event) => {
+        if (!container.contains(event.target)) {
+          // Reset to the first item
+          if (activeItem !== listItems[0]) {
+            activeItem.classList.remove("is-active");
+            gsap.set(activeItem.querySelector("circle"), { strokeDashoffset: 101 });
+
+            listItems[0].classList.add("is-active");
+            gsap.set(listItems[0].querySelector("circle"), { strokeDashoffset: 0 });
+
+            activeItem = listItems[0]; // Update reference to first item
+          }
+        }
+      });
     });
   } else {
     console.warn("Required elements for list timer animation not found");
