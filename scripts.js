@@ -413,7 +413,7 @@ function initScrollAnimations() {
     // ScrollTrigger with time grouping logic
     ScrollTrigger.create({
       trigger: element,
-      start: "top 85%",
+      start: "top 90%",
       once: true, // Ensure the animation runs only once
       onEnter: () => {
         const currentTime = performance.now() / 1000; // Convert to seconds
