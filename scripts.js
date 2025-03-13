@@ -1624,6 +1624,10 @@ function initMaps() {
   const centerCoordinates = { lat: 39.998625, lng: -98.503507 }; // Change to your desired coordinates
   let currentInfoWindow = null; // Keep track of the currently open InfoWindow
 
+  let defaultZoom = parseFloat(
+    Math.max(3.35, Math.min(4.75, window.innerWidth * 0.0026 + 1)).toFixed(2)
+  );
+
   // Define the bounding box
   const bounds = new google.maps.LatLngBounds(
     new google.maps.LatLng(26, -130), // Southwest
@@ -1674,11 +1678,14 @@ function initMaps() {
     maps.forEach((mapInstance) => {
       const projectsMap = new google.maps.Map(mapInstance, {
         center: bounds.getCenter(), // centerCoordinates
-        maxDefaultZoom: 5,
+        zoom: defaultZoom,
         mapId: mapStylesId, // Uses your custom map style
         disableDefaultUI: true, // Hides all UI controls
-        gestureHandling: "none", // Prevents zooming and panning
+        // gestureHandling: "none", // Prevents zooming and panning
         zoomControl: false, // Ensures zoom control buttons are not visible
+        minZoom: defaultZoom - 0.5,
+        maxZoom: defaultZoom + 4,
+        isFractionalZoomEnabled: true, // Ensure fractional zoom is enabled
       });
 
       projectsMap.addListener("click", function () {
@@ -1686,9 +1693,56 @@ function initMaps() {
         if (currentInfoWindow && currentInfoWindow.isOpen) {
           currentInfoWindow.close();
           // projectsMap.panTo(bounds.getCenter());
-          fitMapToBounds();
+          // fitMapToBounds();
         }
       });
+
+      let resetButton = mapInstance.parentElement.querySelector(
+        ".project-map_zoom_btn.is-reset"
+      );
+      let zoomInButton = mapInstance.parentElement.querySelector(
+        ".project-map_zoom_btn.is-zoom-in"
+      );
+      let zoomOutButton = mapInstance.parentElement.querySelector(
+        ".project-map_zoom_btn.is-zoom-out"
+      );
+
+      // Handle zoom in
+      zoomInButton.addEventListener("click", () => {
+        const currentZoom = projectsMap.getZoom();
+        projectsMap.setZoom(currentZoom + 0.5);
+      });
+
+      // Handle zoom out
+      zoomOutButton.addEventListener("click", () => {
+        const currentZoom = projectsMap.getZoom();
+        projectsMap.setZoom(currentZoom - 0.5);
+      });
+
+      // Handle reset
+      resetButton.addEventListener("click", () => {
+        fitMapToBounds();
+        updateResetButtonVisibility();
+      });
+
+      // Helper: compare with precision
+      function isAtDefaultZoom(currentZoom) {
+        return Math.abs(currentZoom - defaultZoom) < 0.26;
+      }
+
+      function updateResetButtonVisibility() {
+        const currentZoom = projectsMap.getZoom();
+        // console.log(currentZoom, defaultZoom);
+        resetButton.style.display = isAtDefaultZoom(currentZoom)
+          ? "none"
+          : "flex";
+      }
+
+      projectsMap.addListener("zoom_changed", () => {
+        zoomLevel = projectsMap.getZoom();
+        updateResetButtonVisibility();
+      });
+      setTimeout(updateResetButtonVisibility, 500);
 
       // Define colors based on project type
       // Former stroke color: #F2E9DF
@@ -1749,78 +1803,10 @@ function initMaps() {
               }
 
               let disableAutoPanVar = false;
-              let offsetX = 0;
+              let offsetX = -125;
               let offsetY = 0;
-              let positionClass = "";
 
-              if (window.innerWidth > 1440) {
-                let disableAutoPanVar = true;
-                const projection = projectsMap.getProjection();
-                if (!projection) return;
-
-                const markerPoint = projection.fromLatLngToPoint(
-                  marker.position
-                );
-                const bounds = projectsMap.getBounds();
-                if (!bounds) return;
-
-                const ne = projection.fromLatLngToPoint(bounds.getNorthEast());
-                const sw = projection.fromLatLngToPoint(bounds.getSouthWest());
-
-                const mapDiv = projectsMap.getDiv();
-                const mapWidth = mapDiv.offsetWidth;
-                const mapHeight = mapDiv.offsetHeight;
-
-                // Convert lat/lng to pixel position
-                const markerPixelX =
-                  ((markerPoint.x - sw.x) / (ne.x - sw.x)) * mapWidth;
-                const markerPixelY =
-                  ((markerPoint.y - ne.y) / (sw.y - ne.y)) * mapHeight;
-
-                // console.log(
-                //   "markerPixelX: " + markerPixelX,
-                //   "markerPixelY: " + markerPixelY
-                // );
-
-                // Default offset (above the marker)
-                offsetX = -125;
-                offsetY = 0;
-                positionClass = "above"; // Default class for styling
-
-                const margin = window.innerWidth < 768 ? 50 : 100; // Prevents touching the edges
-
-                // console.log("mapHeight: " + mapHeight);
-                // console.log("mapWidth: " + mapWidth);
-                // console.log("margin: " + margin);
-
-                if (markerPixelY < margin) {
-                  offsetY = 340; // Move below
-                  positionClass = "below";
-                } else if (markerPixelY > mapHeight - margin) {
-                  positionClass = "above";
-                }
-
-                if (markerPixelX < margin) {
-                  offsetX = 20; // Move right
-                  offsetY = 170;
-                  positionClass = "right";
-                } else if (markerPixelX > mapWidth - margin) {
-                  offsetX = -270; // Move left
-                  offsetY = 170;
-                  positionClass = "left";
-                }
-              }
-
-              // console.log(
-              //   markerPixelY < margin,
-              //   markerPixelY > mapHeight - margin,
-              //   markerPixelX < margin,
-              //   markerPixelX > mapWidth - margin
-              // );
-
-              // console.log("offsetX: " + offsetX, "offsetY: " + offsetY);
-
-              let infoWindowContent = `<div class="project-infowindow ${positionClass}">
+              let infoWindowContent = `<div class="project-infowindow above">
                     <div class="project-infowindow__content">
                       <div class="project-infowindow__header">`;
 
@@ -1859,7 +1845,7 @@ function initMaps() {
               let infoWindow = new google.maps.InfoWindow({
                 content: infoWindowContent,
                 disableAutoPan: disableAutoPanVar,
-                headerDisabled: true,
+                headerDisabled: false,
                 minWidth: 250,
                 maxWidth: 250,
                 pixelOffset: new google.maps.Size(offsetX, offsetY),
@@ -1868,7 +1854,7 @@ function initMaps() {
               infoWindow.open({
                 anchor: marker,
                 map: projectsMap,
-                shouldFocus: disableAutoPanVar,
+                // shouldFocus: disableAutoPanVar,
               });
 
               currentInfoWindow = infoWindow;
@@ -1881,7 +1867,7 @@ function initMaps() {
 
       const padding = window.innerWidth < 768 ? 5 : 15; // Less padding on smaller screens
 
-      // Ensure map fits all markers in view
+      // Fit all markers in view
       function fitMapToBounds() {
         if (projects.length > 1) {
           // projectsMap.fitBounds(bounds);
@@ -1892,14 +1878,7 @@ function initMaps() {
             left: padding, // Adjust padding for spacing
           });
           // drawBoundsRectangle(projectsMap, bounds);
-          projectsMap.setZoom(
-            parseFloat(
-              Math.max(
-                3.35,
-                Math.min(4.75, window.innerWidth * 0.0026 + 1)
-              ).toFixed(2)
-            )
-          );
+          projectsMap.setZoom(defaultZoom);
         } else {
           // If only one marker, keep a fixed zoom level
           projectsMap.setCenter(bounds.getCenter());
@@ -1919,6 +1898,7 @@ function initMaps() {
     });
   }, 750);
 
+  // Helper function for seeing bounds
   function drawBoundsRectangle(projectsMap, bounds) {
     const rectangle = new google.maps.Rectangle({
       bounds: bounds,
