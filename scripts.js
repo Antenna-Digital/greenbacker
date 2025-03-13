@@ -379,7 +379,7 @@ function initScrollAnimations() {
 
   let lastTriggerTime = 0; // Store the timestamp of the last group
   let groupIndex = 0; // To reset delay for new groups
-  const resetTime = 0.25; // Time window (in seconds) to reset the stagger delay
+  const resetTime = 0.1; // Time window (in seconds) to reset the stagger delay
 
   let screenWidth = window.innerWidth;
   let transitionAmount = screenWidth < 600 ? 40 : 75;
@@ -396,7 +396,7 @@ function initScrollAnimations() {
     const customDuration =
       parseFloat(element.getAttribute("data-anim-duration")) || 0.75;
     const customGroupDelay =
-      parseFloat(element.getAttribute("data-anim-group-delay")) || 0.12;
+      parseFloat(element.getAttribute("data-anim-group-delay")) || 0.1;
     const customDelay =
       parseFloat(element.getAttribute("data-anim-delay")) || false;
 
