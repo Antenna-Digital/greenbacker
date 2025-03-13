@@ -1516,7 +1516,7 @@ function strategiesMaps() {
 
       // Get all the map paths.
       const mapPaths = section.querySelectorAll(
-        "svg.us-map-svg path[data-state]"
+        "svg.us-map-svg [data-state]"
       );
 
       // Attach click and keydown event listeners to each strategy item.
