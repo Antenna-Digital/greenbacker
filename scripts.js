@@ -1059,20 +1059,18 @@ function odometers() {
   }
 }
 
-// Project Category Dropdown
-function projectCategoryDropdown() {
+// Filter Dropdown
+function filterDropdown() {
   // Make the dropdown accessible via keyboard
   document
-    .querySelectorAll(".project-showcase_filter_form_select_wrap")
+    .querySelectorAll(".filter_form_select_wrap")
     .forEach((dropdownWrap) => {
-      const dropdown = dropdownWrap.querySelector(
-        ".project-showcase_filter_form_select"
-      );
+      const dropdown = dropdownWrap.querySelector(".filter_form_select");
       const dropdownList = dropdownWrap.querySelector(
-        ".project-showcase_filter_form_select-dropdown"
+        ".filter_form_select-dropdown"
       );
       const checkboxWraps = dropdownList.querySelectorAll(
-        ".project-showcase_filter_form_select_checkbox_wrap"
+        ".filter_form_select_checkbox_wrap"
       );
 
       // Add ARIA attributes
@@ -1089,9 +1087,7 @@ function projectCategoryDropdown() {
 
       // Toggle dropdown on click
       dropdown.addEventListener("click", (e) => {
-        if (
-          !e.target.closest(".project-showcase_filter_form_select-dropdown")
-        ) {
+        if (!e.target.closest(".filter_form_select-dropdown")) {
           toggleDropdown(dropdown, checkboxWraps);
         }
       });
@@ -2063,7 +2059,7 @@ const init = () => {
   swipers();
   accordions();
   odometers();
-  projectCategoryDropdown();
+  filterDropdown();
   returnTablesDropdown();
   pieCharts();
   strategiesMaps();
