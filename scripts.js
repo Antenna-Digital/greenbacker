@@ -2044,6 +2044,51 @@ function overflowScrollContainers() {
     });
 }
 
+// Investment Portfolio Popup
+function investmentPortfolioPopups() {
+  const listItems = document.querySelectorAll('.investment-portfolio_list_item');
+
+  listItems.forEach(item => {
+    const inner = item.querySelector('.investment-portfolio_list_item_inner');
+    const popup = item.querySelector('.investment-portfolio_popup_wrap');
+    const closeButton = item.querySelector('.investment-portfolio_popup_close');
+    const overlay = item.querySelector('.investment-portfolio_popup_overlay');
+
+    // Reset popup to initial state
+    gsap.set(popup, { display: 'none', opacity: 0 });
+
+    // Open popup on list item click
+    inner.addEventListener('click', (event) => {
+      gsap.set(popup, { display: 'block' });
+      gsap.to(popup, { opacity: 1, duration: 0.5 });
+    });
+
+    // Close popup on close button click
+    if (closeButton) {
+      closeButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        gsap.to(popup, {
+          opacity: 0,
+          duration: 0.5,
+          onComplete: () => gsap.set(popup, { display: 'none' })
+        });
+      });
+    }
+
+    // Close popup on overlay click
+    if (overlay) {
+      overlay.addEventListener('click', (event) => {
+        event.stopPropagation();
+        gsap.to(popup, {
+          opacity: 0,
+          duration: 0.5,
+          onComplete: () => gsap.set(popup, { display: 'none' })
+        });
+      });
+    }
+  });
+}
+
 // Init Function
 const init = () => {
   console.log("%cRun init", "color: lightgreen;");
@@ -2067,6 +2112,7 @@ const init = () => {
   finsweetStuff();
   copyrightAutoUpdate();
   overflowScrollContainers();
+  investmentPortfolioPopups();
 }; // end init
 
 $(window).on("load", init);
