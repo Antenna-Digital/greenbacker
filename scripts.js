@@ -2060,7 +2060,7 @@ function investmentPortfolioPopups() {
     // Open popup on list item click
     inner.addEventListener('click', (event) => {
       gsap.set(popup, { display: 'block' });
-      gsap.to(popup, { opacity: 1, duration: 0.5 });
+      gsap.to(popup, { opacity: 1, duration: 0.3 });
     });
 
     // Close popup on close button click
@@ -2069,7 +2069,7 @@ function investmentPortfolioPopups() {
         event.stopPropagation();
         gsap.to(popup, {
           opacity: 0,
-          duration: 0.5,
+          duration: 0.3,
           onComplete: () => gsap.set(popup, { display: 'none' })
         });
       });
@@ -2081,7 +2081,7 @@ function investmentPortfolioPopups() {
         event.stopPropagation();
         gsap.to(popup, {
           opacity: 0,
-          duration: 0.5,
+          duration: 0.3,
           onComplete: () => gsap.set(popup, { display: 'none' })
         });
       });
