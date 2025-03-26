@@ -1911,7 +1911,7 @@ function finsweetStuff() {
           setTimeout(() => {
             updateClearLinkDisplay();
 
-            const pageButtons = $(".project-showcase_collection_page-button");
+            const pageButtons = $(".collection_page-button");
             pageButtons.each(function (index, element) {
               // Get the current text
               let currentText = $(element).text();
@@ -1938,7 +1938,7 @@ function finsweetStuff() {
       const [listInstance] = listInstances;
 
       if (listInstance) {
-        const pageButtons = $(".project-showcase_collection_page-button");
+        const pageButtons = $(".collection_page-button");
         pageButtons.each(function (index, element) {
           // Get the current text
           let currentText = $(element).text();
@@ -1968,6 +1968,9 @@ function finsweetStuff() {
             //   `Button ${index} changed from ${currentText} to ${formattedNumber}`
             // );
           });
+          if (document.querySelector('.team-list_wrap') !== null) {
+            teamList();
+          }
         });
         projectsMap();
       } else {
@@ -2145,6 +2148,58 @@ function investmentPortfolioPopups() {
   });
 }
 
+// Team List
+function teamList() {
+  function updateTeamListMinWidth() {
+    const gap = 32;
+    let maxLinkExtWrapWidth = 0;
+
+    // Find the largest .link_ext_wrap width across all .team-list_collection-list_item containers
+    const gridContainers = document.querySelectorAll('.team-list_collection-list_item, .team-list_grid_header');
+    gridContainers.forEach((container) => {
+      const linkExtWrap = container.querySelector('.link_ext_wrap');
+      if (linkExtWrap) {
+        const linkWidth = linkExtWrap.offsetWidth;
+        console.log(linkWidth);
+        maxLinkExtWrapWidth = Math.max(maxLinkExtWrapWidth, linkWidth);
+      }
+    });
+
+    // Apply the largest width to the .team-list_grid_header_text_wrap.is-bio child inside .team-list_grid_header
+    const gridHeader = document.querySelector('.team-list_grid_header');
+    if (gridHeader) {
+      const bioElement = gridHeader.querySelector('.team-list_grid_header_text_wrap.is-bio > *');
+      if (bioElement && maxLinkExtWrapWidth !== 0) {
+        bioElement.style.width = `${maxLinkExtWrapWidth}px`;
+        console.log(maxLinkExtWrapWidth);
+      }
+    }
+
+    // Now process grid items and set min-width
+    gridContainers.forEach((container) => {
+      // Calculate the sum of the min-width of all grid items
+      const gridItems = container.querySelectorAll(':scope > div');
+      let totalMinWidth = 0;
+
+      gridItems.forEach(item => {
+        const minWidth = parseFloat(getComputedStyle(item).minWidth) || 0;
+        totalMinWidth += minWidth;
+      });
+
+      // Add the gap width (multiply by the number of gaps, which is one less than the number of items)
+      const totalGapWidth = gap * (gridItems.length);
+      totalMinWidth += totalGapWidth;
+
+      // Set the min-width of the grid container to the sum of its children's min-widths plus the gaps
+      container.style.minWidth = `${totalMinWidth}px`;
+    });
+
+    console.log('ran updateTeamListMinWidth');
+  }
+
+  updateTeamListMinWidth();
+}
+
 // Init Function
 const init = () => {
   console.log("%cRun init", "color: lightgreen;");
@@ -2169,6 +2224,7 @@ const init = () => {
   copyrightAutoUpdate();
   overflowScrollContainers();
   investmentPortfolioPopups();
+  teamList();
 }; // end init
 
 $(window).on("load", init);
