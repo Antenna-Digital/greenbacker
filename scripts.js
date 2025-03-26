@@ -1140,20 +1140,37 @@ function filterDropdown() {
     dropdown.classList.toggle("is-open");
     dropdown.setAttribute("aria-expanded", !isOpen);
 
-    // Update tabindex for checkbox wraps
+    // Ensure only checkboxes are tabbable when the dropdown is open
     checkboxWraps.forEach((wrap) => {
-      wrap.setAttribute("tabindex", isOpen ? "-1" : "1");
+      const checkbox = wrap.querySelector(".filter_form_select_input");
+      if (checkbox) {
+        checkbox.setAttribute("tabindex", isOpen ? "-1" : "0"); // Control tabindex properly
+      }
     });
+
+    if (!isOpen) {
+      // Move focus to first checkbox when opening
+      checkboxWraps[0]?.querySelector(".filter_form_select_input")?.focus();
+    }
   }
 
   function closeDropdown(dropdown, checkboxWraps) {
+    const activeElement = document.activeElement; // Store current focus
     dropdown.classList.remove("is-open");
     dropdown.setAttribute("aria-expanded", "false");
-
-    // Set tabindex to -1 for all checkbox wraps
+  
+    // Remove all checkboxes from tab order when closed
     checkboxWraps.forEach((wrap) => {
-      wrap.setAttribute("tabindex", "-1");
+      const checkbox = wrap.querySelector(".filter_form_select_input");
+      if (checkbox) {
+        checkbox.setAttribute("tabindex", "-1");
+      }
     });
+  
+    // Only refocus if the previous element was inside the dropdown
+    if (dropdown.contains(activeElement)) {
+      dropdown.focus();
+    }
   }
 }
 
@@ -1174,6 +1191,7 @@ function returnTablesDropdown() {
       );
 
       // Add ARIA attributes
+      dropdown.setAttribute("role", "combobox");
       dropdown.setAttribute("aria-expanded", "false");
       dropdown.setAttribute("aria-controls", "class-dropdown");
       dropdown.setAttribute("tabindex", "0");
@@ -1186,7 +1204,6 @@ function returnTablesDropdown() {
 
       // Toggle dropdown on click
       dropdown.addEventListener("click", (e) => {
-        // console.log("click");
         if (!e.target.closest(".returns-tables_filter_form_select-dropdown")) {
           toggleDropdown(dropdown, optionWraps);
         }
@@ -1209,49 +1226,10 @@ function returnTablesDropdown() {
         }
       });
 
-      // Add keyboard event listeners to all checkbox wraps
+      // Add keyboard event listeners to all option wraps
       optionWraps.forEach((wrap) => {
         wrap.addEventListener("click", (e) => {
-          const selectedClass = wrap.dataset.class;
-          const targetElements = document.querySelectorAll(
-            `.returns-tables_class_wrap[data-class="${selectedClass}"]`
-          );
-          const allTargetElements = document.querySelectorAll(
-            ".returns-tables_class_wrap"
-          );
-          const allOptionWraps = document.querySelectorAll(
-            ".returns-tables_filter_form_select_option_wrap"
-          );
-
-          allTargetElements.forEach((el) => {
-            el.classList.remove("is-active");
-            // el.style.opacity = 0;
-            // setTimeout(() => {
-            //   el.style.display = "none";
-            //   el.classList.remove("is-active");
-            // }, 250);
-          });
-
-          targetElements.forEach((el) => {
-            el.classList.add("is-active");
-            // setTimeout(() => {
-            //   el.style.display = "block";
-            //   el.style.opacity = 1;
-            //   el.classList.add("is-active"); // Trigger the transition
-            // }, 250);
-          });
-
-          allOptionWraps.forEach((option) => {
-            // Remove is-active from all options
-            option.classList.remove("is-active");
-          });
-
-          wrap.classList.add("is-active"); // Add is-active to the clicked wrap
-
-          document.querySelector(
-            ".returns-tables_filter_form_select_text"
-          ).textContent = wrap.textContent;
-          closeDropdown(dropdown, optionWraps);
+          handleOptionSelect(wrap, dropdown, optionWraps);
         });
 
         wrap.addEventListener("keydown", (e) => {
@@ -1283,20 +1261,63 @@ function returnTablesDropdown() {
     dropdown.classList.toggle("is-open");
     dropdown.setAttribute("aria-expanded", !isOpen);
 
-    // Update tabindex for checkbox wraps
+    // Update tabindex for option wraps
     optionWraps.forEach((wrap) => {
-      wrap.setAttribute("tabindex", isOpen ? "-1" : "1");
+      wrap.setAttribute("tabindex", isOpen ? "-1" : "0");
     });
+
+    // Move focus to first option when opening
+    if (!isOpen && optionWraps.length > 0) {
+      optionWraps[0].focus();
+    }
   }
 
   function closeDropdown(dropdown, optionWraps) {
+    const activeElement = document.activeElement; // Store current focus
     dropdown.classList.remove("is-open");
     dropdown.setAttribute("aria-expanded", "false");
 
-    // Set tabindex to -1 for all checkbox wraps
+    // Set tabindex to -1 for all option wraps
     optionWraps.forEach((wrap) => {
       wrap.setAttribute("tabindex", "-1");
     });
+
+    // Restore focus to dropdown if it was focused before closing
+    if (dropdown.contains(activeElement)) {
+      dropdown.focus();
+    }
+  }
+
+  function handleOptionSelect(wrap, dropdown, optionWraps) {
+    const selectedClass = wrap.dataset.class;
+    const targetElements = document.querySelectorAll(
+      `.returns-tables_class_wrap[data-class="${selectedClass}"]`
+    );
+    const allTargetElements = document.querySelectorAll(
+      ".returns-tables_class_wrap"
+    );
+    const allOptionWraps = document.querySelectorAll(
+      ".returns-tables_filter_form_select_option_wrap"
+    );
+
+    allTargetElements.forEach((el) => {
+      el.classList.remove("is-active");
+    });
+
+    targetElements.forEach((el) => {
+      el.classList.add("is-active");
+    });
+
+    allOptionWraps.forEach((option) => {
+      option.classList.remove("is-active");
+    });
+
+    wrap.classList.add("is-active");
+
+    document.querySelector(
+      ".returns-tables_filter_form_select_text"
+    ).textContent = wrap.textContent;
+    closeDropdown(dropdown, optionWraps);
   }
 }
 
@@ -1877,9 +1898,8 @@ function finsweetStuff() {
         );
 
         const updateClearLinkDisplay = () => {
-          filterInstance.filtersActive
-            ? (clearLink.style.display = "block")
-            : (clearLink.style.display = "none");
+          const activeFilters = document.querySelectorAll(".fs-cmsfilter_active");
+          clearLink.style.display = activeFilters.length > 0 ? "block" : "none";
         };
 
         updateClearLinkDisplay();
@@ -2053,14 +2073,30 @@ function investmentPortfolioPopups() {
     const popup = item.querySelector('.investment-portfolio_popup_wrap');
     const closeButton = item.querySelector('.investment-portfolio_popup_close');
     const overlay = item.querySelector('.investment-portfolio_popup_overlay');
+    const focusableElements = popup.querySelectorAll('a, button, input, select, textarea, [tabindex="0"]');
 
     // Reset popup to initial state
     gsap.set(popup, { display: 'none', opacity: 0 });
 
-    // Open popup on list item click
-    inner.addEventListener('click', (event) => {
+    // Function to open popup and move focus to first focusable element
+    function openPopup() {
       gsap.set(popup, { display: 'block' });
       gsap.to(popup, { opacity: 1, duration: 0.3 });
+
+      // Move focus to the first focusable element inside the popup
+      if (focusableElements.length > 0) {
+        focusableElements[0].focus();
+      }
+    }
+
+    // Open popup on list item click or keypress (Enter/Space)
+    inner.addEventListener('click', openPopup);
+
+    inner.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault(); // Prevent default behavior (e.g., space scrolling)
+        openPopup();
+      }
     });
 
     // Close popup on close button click
@@ -2070,8 +2106,25 @@ function investmentPortfolioPopups() {
         gsap.to(popup, {
           opacity: 0,
           duration: 0.3,
-          onComplete: () => gsap.set(popup, { display: 'none' })
+          onComplete: () => {
+            gsap.set(popup, { display: 'none' });
+            inner.focus(); // Return focus to the item
+          }
         });
+      });
+      closeButton.addEventListener('keydown', (event)=> {
+        event.preventDefault(); // Prevent default behavior (e.g., space scrolling)
+        event.stopPropagation();
+        if (event.key === 'Enter' || event.key === ' ') {
+          gsap.to(popup, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => {
+              gsap.set(popup, { display: 'none' });
+              inner.focus(); // Return focus to the item
+            }
+          });
+        }
       });
     }
 
@@ -2082,7 +2135,10 @@ function investmentPortfolioPopups() {
         gsap.to(popup, {
           opacity: 0,
           duration: 0.3,
-          onComplete: () => gsap.set(popup, { display: 'none' })
+          onComplete: () => {
+            gsap.set(popup, { display: 'none' });
+            inner.focus(); // Return focus to the item
+          }
         });
       });
     }
