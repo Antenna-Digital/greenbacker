@@ -2089,9 +2089,9 @@ function collectionPopups() {
       gsap.to(popup, { opacity: 1, duration: 0.3 });
 
       // Move focus to the first focusable element inside the popup
-      if (focusableElements.length > 0) {
-        focusableElements[0].focus();
-      }
+      // if (focusableElements.length > 0) {
+      //   focusableElements[0].focus();
+      // }
     }
 
     // Open popup on list item click or keypress (Enter/Space)
