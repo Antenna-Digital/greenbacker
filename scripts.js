@@ -2067,15 +2067,17 @@ function overflowScrollContainers() {
     });
 }
 
-// Investment Portfolio Popup
-function investmentPortfolioPopups() {
-  const listItems = document.querySelectorAll('.investment-portfolio_list_item');
+// Collection Popups
+function collectionPopups() {
+  const listItems = document.querySelectorAll('.investment-portfolio_list_item, .leadership_grid_collection_item');
 
   listItems.forEach(item => {
-    const inner = item.querySelector('.investment-portfolio_list_item_inner');
-    const popup = item.querySelector('.investment-portfolio_popup_wrap');
-    const closeButton = item.querySelector('.investment-portfolio_popup_close');
-    const overlay = item.querySelector('.investment-portfolio_popup_overlay');
+    let investmentPortfolioInner = item.querySelector('.investment-portfolio_list_item_inner');
+    let leadershipInner = item.querySelector('.leadership_grid_item');
+    const inner = investmentPortfolioInner ? investmentPortfolioInner : leadershipInner;
+    const popup = item.querySelector('.popup_wrap');
+    const closeButton = item.querySelector('.popup_close');
+    const overlay = item.querySelector('.popup_overlay');
     const focusableElements = popup.querySelectorAll('a, button, input, select, textarea, [tabindex="0"]');
 
     // Reset popup to initial state
@@ -2105,6 +2107,7 @@ function investmentPortfolioPopups() {
     // Close popup on close button click
     if (closeButton) {
       closeButton.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent default behavior
         event.stopPropagation();
         gsap.to(popup, {
           opacity: 0,
@@ -2223,7 +2226,7 @@ const init = () => {
   finsweetStuff();
   copyrightAutoUpdate();
   overflowScrollContainers();
-  investmentPortfolioPopups();
+  collectionPopups();
   teamList();
 }; // end init
 
