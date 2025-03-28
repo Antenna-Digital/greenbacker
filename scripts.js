@@ -2078,7 +2078,7 @@ function collectionPopups() {
     const popup = item.querySelector('.popup_wrap');
     const closeButton = item.querySelector('.popup_close');
     const overlay = item.querySelector('.popup_overlay');
-    const focusableElements = popup.querySelectorAll('a, button, input, select, textarea, [tabindex="0"]');
+    // const focusableElements = popup.querySelectorAll('a, button, input, select, textarea, [tabindex="0"]');
 
     // Reset popup to initial state
     gsap.set(popup, { display: 'none', opacity: 0 });
@@ -2163,7 +2163,7 @@ function teamList() {
       const linkExtWrap = container.querySelector('.link_ext_wrap');
       if (linkExtWrap) {
         const linkWidth = linkExtWrap.offsetWidth;
-        console.log(linkWidth);
+        // console.log(linkWidth);
         maxLinkExtWrapWidth = Math.max(maxLinkExtWrapWidth, linkWidth);
       }
     });
@@ -2174,7 +2174,7 @@ function teamList() {
       const bioElement = gridHeader.querySelector('.team-list_grid_header_text_wrap.is-bio > *');
       if (bioElement && maxLinkExtWrapWidth !== 0) {
         bioElement.style.width = `${maxLinkExtWrapWidth}px`;
-        console.log(maxLinkExtWrapWidth);
+        // console.log(maxLinkExtWrapWidth);
       }
     }
 
@@ -2197,7 +2197,7 @@ function teamList() {
       container.style.minWidth = `${totalMinWidth}px`;
     });
 
-    console.log('ran updateTeamListMinWidth');
+    // console.log('ran updateTeamListMinWidth');
   }
 
   updateTeamListMinWidth();
