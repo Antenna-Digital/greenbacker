@@ -313,15 +313,13 @@ function navSubmenus() {
  * ------
  * 1. Add data attributes to your HTML elements:
  *    - data-anim: Specifies the animation type
- *    - data-anim-duration: (Optional) Sets custom animation duration in seconds
- *    - data-anim-delay: (Optional) Sets element's individual delay in seconds
- *    - data-anim-group-delay: (Optional) Sets custom stagger delay between elements entering visibility within 0.25 time frame in seconds
+ *    - data-anim-duration: (Optional) Sets custom animation duration in seconds or milliseconds
+ *    - data-anim-delay: (Optional) Sets element's individual delay in seconds or milliseconds
+ *    - data-anim-group-delay: (Optional) Sets custom stagger delay between elements entering visibility within 0.1s time frame in seconds or milliseconds
  *
  * Example HTML:
  * ```html
- * <div data-anim="fadeslide-up" data-anim-duration="0.8" data-anim-group-delay="0.15">
- *   Content here
- * </div>
+ * <div data-anim="fadeslide-up" data-anim-duration="0.8" data-anim-group-delay="0.15"></div>
  * ```
  *
  * Necessary CSS:
@@ -350,14 +348,14 @@ function navSubmenus() {
  * Default Values:
  * --------------
  * - Animation Duration: 0.75 seconds
- * - Stagger Delay: 0.12 seconds
- * - Scroll Trigger Point: 80% from top of viewport
- * - Reset Time Window: 0.25 seconds (for grouping staggered animations)
+ * - Stagger Delay: 0.1 seconds
+ * - Scroll Trigger Point: 90% from top of viewport
+ * - Reset Time Window: 0.1 seconds (for grouping staggered animations)
  *
  * Special Features:
  * ---------------
  * 1. Stagger Grouping:
- *    - Elements triggered within 0.25 seconds are grouped together
+ *    - Elements triggered within 0.1 seconds are grouped together
  *    - Each group starts its own stagger sequence
  *    - Helps maintain visual coherence for elements entering viewport together
  *
@@ -370,7 +368,7 @@ function navSubmenus() {
  * -------------------
  * - Call initScrollAnimations() after DOM is ready
  * - Ensure GSAP and ScrollTrigger are loaded before initialization
- * - Animations trigger when elements are 80% visible from the top of viewport
+ * - Animations trigger when elements are 90% visible from the top of viewport
  *
  */
 function initScrollAnimations() {
@@ -393,16 +391,21 @@ function initScrollAnimations() {
 
   animElements.forEach((element, index) => {
     let setDuration = element.getAttribute("data-anim-duration");
-    if (setDuration > 50) {
-      setDuration = setDuration / 1000; // the value was likely set with ms in mind so we convert to s
-    }
+    let setGroupDelay = element.getAttribute("data-anim-group-delay");
+    let setDelay = element.getAttribute("data-anim-delay");
+
+    // If the value is greater than 50, we assume it was set with milliseconds in mind so we convert to seconds
+    if (setDuration > 50) { setDuration = setDuration / 1000; }
+    if (setGroupDelay > 50) { setGroupDelay = setGroupDelay / 1000; }
+    if (setDelay > 50) { setDelay = setDelay / 1000; }
+
     const animType = element.getAttribute("data-anim");
     const customDuration =
       parseFloat(setDuration) || 0.75;
     const customGroupDelay =
-      parseFloat(element.getAttribute("data-anim-group-delay")) || 0.1;
+      parseFloat(setGroupDelay) || 0.1;
     const customDelay =
-      parseFloat(element.getAttribute("data-anim-delay")) || false;
+      parseFloat(setDelay) || false;
 
     const rect = element.getBoundingClientRect();
     const isAboveViewport = rect.bottom < 0; // Element is already above the viewport
