@@ -1,4 +1,4 @@
-console.log("%cScripts.js loaded", "color: lightgreen;");
+console.debug("%cScripts.js loaded", "color: lightgreen;");
 
 // Helper Functions
 function formatNumber(str) {
@@ -392,9 +392,13 @@ function initScrollAnimations() {
   });
 
   animElements.forEach((element, index) => {
+    let setDuration = element.getAttribute("data-anim-duration");
+    if (setDuration > 50) {
+      setDuration = setDuration / 1000; // the value was likely set with ms in mind so we convert to s
+    }
     const animType = element.getAttribute("data-anim");
     const customDuration =
-      parseFloat(element.getAttribute("data-anim-duration")) || 0.75;
+      parseFloat(setDuration) || 0.75;
     const customGroupDelay =
       parseFloat(element.getAttribute("data-anim-group-delay")) || 0.1;
     const customDelay =
@@ -693,7 +697,7 @@ function listTimerAnimation() {
       });
     });
   } else {
-    console.warn("Required elements for list timer animation not found");
+    console.debug("Required elements for list timer animation not found");
     return;
   }
 }
@@ -882,7 +886,7 @@ function accordions() {
   const accordions = document.querySelectorAll(".g_accordion_wrap");
 
   if (!accordions.length) {
-    console.warn("No accordion elements found.");
+    console.debug("No accordion elements found.");
     return;
   }
 
@@ -1879,7 +1883,7 @@ function initMaps() {
 
 // Finsweet Stuff
 function finsweetStuff() {
-  console.log(
+  console.debug(
     "%c [DEBUG] Starting finsweetStuff",
     "background: #33cc33; color: white"
   );
@@ -1888,7 +1892,7 @@ function finsweetStuff() {
   window.fsAttributes.push([
     "cmsfilter",
     (filterInstances) => {
-      console.log("cmsfilter Successfully loaded!");
+      console.debug("cmsfilter Successfully loaded!");
 
       const [filterInstance] = filterInstances;
 
@@ -1933,7 +1937,7 @@ function finsweetStuff() {
   window.fsAttributes.push([
     "cmsload",
     (listInstances) => {
-      console.log("cmsload Successfully loaded!");
+      console.debug("cmsload Successfully loaded!");
 
       const [listInstance] = listInstances;
 
@@ -2205,7 +2209,7 @@ function teamList() {
 
 // Init Function
 const init = () => {
-  console.log("%cRun init", "color: lightgreen;");
+  console.debug("%cRun init", "color: lightgreen;");
 
   enableLenis();
   scrollMarginFix();
