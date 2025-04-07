@@ -78,71 +78,71 @@ function scrollMarginFix() {
 }
 
 // Image Resizing to fix quality
-function imageSrcSetFix() {
-  // Handle improperly loaded srcset size for responsive images
-  var images = document.getElementsByTagName("img");
-
-  function updateImageSizes() {
-    for (var i = 0; i < images.length; i++) {
-      var image = images[i];
-
-      // Check if the image has already been sized
-      if (!image.dataset.sized) {
-        if (image.complete) {
-          setImageSizes(image);
-        } else {
-          // Add a one-time load event listener
-          image.addEventListener(
-            "load",
-            function () {
-              setImageSizes(this);
-            },
-            { once: true }
-          );
-        }
-      }
-    }
-  }
-
+function imageSrcSetFix(debug = false) {
   function setImageSizes(image) {
-    var imageRect = image.getBoundingClientRect();
-    var imageWidth = imageRect.width;
-    var imageHeight = imageRect.height;
-    var viewportWidth = window.innerWidth;
-    var viewportHeight = window.innerHeight;
-
-    // Calculate width percentage
-    var widthPercentage = (imageWidth / viewportWidth) * 100;
-
-    // Calculate height percentage
-    var heightPercentage = (imageHeight / viewportHeight) * 100;
-
-    // Combine width and height considerations
-    var combinedSizeValue =
-      Math.round(widthPercentage * 0.7 + heightPercentage * 0.3) + "vw";
-
-    // Optional: Add a minimum and maximum size constraint
-    var minSize = 10; // Minimum 10vw
-    var maxSize = 90; // Maximum 90vw
-    var finalSizeValue =
-      Math.min(Math.max(parseFloat(combinedSizeValue), minSize), maxSize) +
-      "vw";
-
-    // Set sizes attribute
+    const imageRect = image.getBoundingClientRect();
+    const imageWidth = imageRect.width;
+    const viewportWidth = window.innerWidth;
+  
+    let finalSizeValue = Math.round((imageWidth / viewportWidth) * 100) + "vw";
+  
+    // Force re-evaluation by swapping src momentarily
+    const src = image.src;
     image.setAttribute("sizes", finalSizeValue);
-
-    // Mark as sized to avoid redundant processing
+    image.src = ""; // Temporarily clear src
+    image.src = src; // Restore it to trigger `srcset` recalculation
+  
     image.dataset.sized = "true";
-
-    // Optional: Log for debugging
-    // console.log(`Image size set to: ${finalSizeValue}`);
+    console.debug("[imageSrcSetFix] Processed:", {
+      img: image.src,
+      containerWidth: imageWidth,
+      finalSizeValue: finalSizeValue,
+    });
   }
 
-  // Update image sizes on initial load
-  updateImageSizes();
+  // ResizeObserver to update sizes on container changes
+  let observer = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      let image = entry.target;
+      setImageSizes(image);
+    }
+  });
 
-  // Update image sizes on window resize with debounce
-  window.addEventListener("resize", debounce(updateImageSizes, 200));
+  // Function to handle each image
+  function processImage(image) {
+    if (image.dataset.sized) return;
+
+    observer.observe(image); // Watch for size changes
+
+    if (image.complete) {
+      setImageSizes(image);
+    } else {
+      image.addEventListener("load", () => setImageSizes(image), { once: true });
+    }
+
+    if (debug) console.log(`[imageSrcSetFix] Observing image`, image.src);
+  }
+
+  // Process all existing images
+  document.querySelectorAll("img").forEach(processImage);
+
+  // MutationObserver for dynamically added images
+  let mutationObserver = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.tagName === "IMG") {
+          processImage(node);
+        } else if (node.querySelectorAll) {
+          node.querySelectorAll("img").forEach(processImage);
+        }
+      });
+    });
+  });
+
+  // Observe body for dynamically injected images
+  mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+  if (debug) console.log(`[imageSrcSetFix] Initialized.`);
 }
 
 // Nav Submenus
@@ -750,6 +750,24 @@ function swipers() {
             },
           },
         },
+        on: {
+          init: function () {
+            console.debug("%cSwiper initialized", "color: cyan;");
+            imageSrcSetFix(true); // Ensure images are processed after Swiper is ready
+          },
+          slideChangeTransitionEnd: function () {
+            const activeSlide = this.slides[this.activeIndex];
+            const images = activeSlide.querySelectorAll('img:not([data-sized="true"])');
+
+            images.forEach((img) => {
+              if (img.complete) {
+                setImageSizes(img);
+              } else {
+                img.addEventListener('load', () => setImageSizes(img), { once: true });
+              }
+            });
+          }
+        }
       });
 
       const scrollbarDrag = scrollbarEl.querySelector(".swiper-scrollbar-drag");
@@ -2210,13 +2228,24 @@ function teamList() {
   updateTeamListMinWidth();
 }
 
+// Form Stuff
+function formStuff() {
+  const submitButtons = document.querySelectorAll('button[type="submit"]');
+  submitButtons.forEach(function(button){
+    button.addEventListener('click', function(){
+      setTimeout(function(){
+        ScrollTrigger.refresh();
+      }, 1000);
+    })
+  });
+}
+
 // Init Function
 const init = () => {
   console.debug("%cRun init", "color: lightgreen;");
 
   enableLenis();
   scrollMarginFix();
-  imageSrcSetFix();
   navSubmenus();
   initScrollAnimations();
   menuOpenLogoAnimation();
@@ -2235,6 +2264,9 @@ const init = () => {
   overflowScrollContainers();
   collectionPopups();
   teamList();
+  formStuff();
+  $(window).on("resize", debounce(() => imageSrcSetFix(true), 200));
 }; // end init
 
+$(document).on("ready", imageSrcSetFix(true));
 $(window).on("load", init);
