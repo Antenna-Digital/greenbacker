@@ -2230,13 +2230,18 @@ function teamList() {
 
 // Form Stuff
 function formStuff() {
-  const submitButtons = document.querySelectorAll('button[type="submit"]');
-  submitButtons.forEach(function(button){
-    button.addEventListener('click', function(){
-      setTimeout(function(){
+  // Listen to all jQuery AJAX events (success, error, etc.)
+  $(document).ajaxComplete(function (event, xhr, settings) {
+    if (settings.url.includes('/form/')) {
+      // console.log('AJAX completed:', event, xhr, settings);
+
+      if (xhr.status === 200) {
+        console.log('Form successfully submitted');
         ScrollTrigger.refresh();
-      }, 1000);
-    })
+      } else {
+        console.log('Form submission failed');
+      }
+    }
   });
 }
 
