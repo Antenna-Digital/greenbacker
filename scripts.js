@@ -2020,20 +2020,26 @@ function overflowScrollContainers() {
       .forEach(function (wrapper) {
         const content = wrapper.querySelector(".u-horizontal-scroll-container");
         const hasOverflow = content.scrollWidth > content.clientWidth;
-        let shadowTop = document.createElement("div");
-        let shadowBottom = document.createElement("div");
+        let shadowTop = wrapper.querySelector(".shadow--top") || document.createElement("div");
+        let shadowBottom = wrapper.querySelector(".shadow--bottom") || document.createElement("div");
+        let shadowEdgeTop = wrapper.querySelector(".shadow-edge--top") || document.createElement("div");
+        let shadowEdgeBottom = wrapper.querySelector(".shadow-edge--bottom") || document.createElement("div");
 
-        if (!wrapper.querySelector(".shadow--top")) {
+        if (!wrapper.contains(shadowTop)) {
           shadowTop.classList.add("shadow", "shadow--top");
           wrapper.appendChild(shadowTop);
-        } else {
-          shadowTop = wrapper.querySelector(".shadow--top");
         }
-        if (!wrapper.querySelector(".shadow--bottom")) {
+        if (!wrapper.contains(shadowBottom)) {
           shadowBottom.classList.add("shadow", "shadow--bottom");
           wrapper.appendChild(shadowBottom);
-        } else {
-          shadowBottom = wrapper.querySelector(".shadow--bottom");
+        }
+        if (!wrapper.contains(shadowEdgeTop)) {
+          shadowEdgeTop.classList.add("shadow-edge", "shadow-edge--top");
+          wrapper.appendChild(shadowEdgeTop);
+        }
+        if (!wrapper.contains(shadowEdgeBottom)) {
+          shadowEdgeBottom.classList.add("shadow-edge", "shadow-edge--bottom");
+          wrapper.appendChild(shadowEdgeBottom);
         }
 
         let contentScrollWidth = content.scrollWidth - wrapper.offsetWidth;
@@ -2041,18 +2047,42 @@ function overflowScrollContainers() {
         // console.log(hasOverflow);
 
         if (hasOverflow) {
-          let currentScroll = content.scrollLeft / contentScrollWidth;
-          shadowTop.style.opacity = currentScroll;
-          shadowBottom.style.opacity = 1 - currentScroll;
-          content.addEventListener("scroll", function () {
-            // console.log("content is being scrolled");
-            currentScroll = this.scrollLeft / contentScrollWidth;
-            shadowTop.style.opacity = currentScroll;
-            shadowBottom.style.opacity = 1 - currentScroll;
-          });
+          const epsilon = 2;
+  
+          function updateShadows() {
+            const maxScroll = content.scrollWidth - content.clientWidth;
+            const scrollLeft = content.scrollLeft;
+            const scrollRatio = Math.min(Math.max(scrollLeft / maxScroll, 0), 1);
+  
+            const leftOpacity = scrollRatio;
+            const rightOpacity = 1 - scrollRatio;
+  
+            // Main shadows
+            shadowTop.style.opacity = leftOpacity;
+            shadowBottom.style.opacity = rightOpacity;
+  
+            // Edge shadows
+            shadowEdgeTop.style.opacity = leftOpacity;
+            shadowEdgeBottom.style.opacity = rightOpacity;
+  
+            if (scrollLeft >= maxScroll - epsilon) {
+              shadowBottom.style.opacity = 0;
+              shadowEdgeBottom.style.opacity = 0;
+            }
+  
+            if (scrollLeft <= epsilon) {
+              shadowTop.style.opacity = 0;
+              shadowEdgeTop.style.opacity = 0;
+            }
+          }
+  
+          content.removeEventListener("scroll", updateShadows);
+          content.addEventListener("scroll", updateShadows);
+          updateShadows();
         } else {
-          shadowTop.style.opacity = 0;
-          shadowBottom.style.opacity = 0;
+          [shadowTop, shadowBottom, shadowEdgeTop, shadowEdgeBottom].forEach((el) => {
+            el.style.opacity = 0;
+          });
         }
       });
   }
