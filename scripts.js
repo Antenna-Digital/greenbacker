@@ -2013,26 +2013,7 @@ function copyrightAutoUpdate() {
 
 // Overflow Scroll containers
 function overflowScrollContainers() {
-  // document
-  //   .querySelectorAll(".returns-tables_class_tabs_menu")
-  //   .forEach((tabsMenu) => {
-  //     tabsMenu.classList.add("u-horizontal-scroll-wrapper");
-  //     let tabLinksContainer = document.createElement("div");
-  //     tabLinksContainer.classList.add(
-  //       "u-horizontal-scroll-container",
-  //       "returns-tables_class_tabs_menu",
-  //       "w-tab-menu"
-  //     );
-  //     tabLinksContainer.setAttribute("role", "tablist");
-  //     tabsMenu.appendChild(tabLinksContainer);
-  //     let tabLinks = tabsMenu.querySelectorAll(
-  //       ".returns-tables_class_tab_link"
-  //     );
-  //     tabLinks.forEach((tabLink) => {
-  //       tabLinksContainer.appendChild(tabLink);
-  //     });
-  //   });
-
+  
   function updateHorizontalShadows() {
     document
       .querySelectorAll(".u-horizontal-scroll-wrapper")
