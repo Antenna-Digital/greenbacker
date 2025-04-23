@@ -1033,6 +1033,25 @@ function accordions() {
       });
     });
   });
+
+  function updateOpenAccordionHeights() {
+    const accordions = document.querySelectorAll(".g_accordion_wrap");
+
+    accordions.forEach((accordion) => {
+      const contents = accordion.querySelectorAll(".g_accordion_content");
+      const headers = accordion.querySelectorAll(".g_accordion_header");
+
+      contents.forEach((content, index) => {
+        const header = headers[index];
+        if (header.getAttribute("aria-expanded") === "true") {
+          // Re-apply the scrollHeight as maxHeight to adapt to new wrapping
+          content.style.maxHeight = content.scrollHeight + "px";
+        }
+      });
+    });
+  }
+
+  window.addEventListener("resize", debounce(updateOpenAccordionHeights, 150));
 }
 
 // Odometers
