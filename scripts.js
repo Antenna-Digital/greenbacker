@@ -241,58 +241,110 @@ function navSubmenus() {
     }
   };
 
+  // Function to toggle submenu state
+  const toggleSubmenu = (item) => {
+    const isOpen = item.classList.contains("is-open");
+    
+    if (isOpen) {
+      closeAllSubmenus();
+    } else {
+      openSubmenu(item);
+    }
+  };
+
   navItems.forEach((item) => {
     const navLink = item.querySelector(".nav_links_link");
+    const slideoutLink = item.querySelector(".nav_links_link.is-slideout");
+    const navIcon = item.querySelector(".nav_links_icon_wrap");
+
+    // Add tabindex to all nav links for better keyboard accessibility
+    if (navLink) {
+      navLink.setAttribute("tabindex", "0");
+    }
 
     // Handle clicks/touches on .nav_links_link to prioritize navigation
     if (navLink) {
       navLink.addEventListener("touchstart", (e) => {
-        clearTimeout(debounceTimer); // Prevent submenu opening if touching nav link within 500ms
-        e.stopPropagation(); // Prevent touch from bubbling up to parent
+        clearTimeout(debounceTimer);
+        
+        // Only stop propagation for non-slideout links
+        if (!navLink.classList.contains("is-slideout")) {
+          e.stopPropagation(); // Prevent touch from bubbling up to parent
+        }
       });
 
       navLink.addEventListener("click", (e) => {
-        clearTimeout(debounceTimer); // Prevent submenu opening if clicking nav link within 500ms
-        e.stopPropagation(); // Prevent click from triggering parent logic
+        clearTimeout(debounceTimer);
+        
+        // If it's a slideout link, toggle the submenu
+        if (navLink.classList.contains("is-slideout")) {
+          e.preventDefault(); // Prevent default navigation for slideout links
+          toggleSubmenu(item);
+        } else {
+          e.stopPropagation(); // Prevent click from triggering parent logic for regular links
+        }
       });
 
       // Handle focus event for keyboard navigation (tabbing)
       navLink.addEventListener("focus", () => {
         openSubmenu(item); // Open submenu when tabbing to the item
       });
+      
+      // Handle keyboard interactions for slideout links
+      if (navLink.classList.contains("is-slideout")) {
+        navLink.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault(); // Prevent default behavior
+            toggleSubmenu(item);
+          }
+        });
+      }
     }
+
+    // Add click event on nav icon to toggle submenu
+    if (navIcon) {
+      navIcon.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSubmenu(item);
+      });
+      
+      // Make nav icons keyboard accessible
+      navIcon.setAttribute("tabindex", "0");
+      navIcon.setAttribute("role", "button");
+      navIcon.setAttribute("aria-label", "Toggle submenu");
+      
+      // Handle keyboard interactions for nav icons
+      navIcon.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault(); // Prevent default behavior
+          toggleSubmenu(item);
+        }
+      });
+    }
+
+    // Add click event on the nav item itself (but not when clicking the navLink)
+    item.addEventListener("click", (e) => {
+      // Only trigger if the click wasn't on the nav link or a child of nav link
+      if (!navLink || (!navLink.contains(e.target) && e.target !== navLink)) {
+        toggleSubmenu(item);
+      }
+    });
 
     // Handle touchstart events for toggling submenu
     item.addEventListener("touchstart", (e) => {
-      // If the touch is on the navLink, allow normal navigation
-      if (e.target === navLink || navLink.contains(e.target)) {
+      // If the touch is on a regular navLink (not slideout), allow normal navigation
+      if (navLink && !navLink.classList.contains("is-slideout") && 
+          (e.target === navLink || navLink.contains(e.target))) {
         return;
       }
 
       e.preventDefault(); // Prevent default behavior for touch
-      const isOpen = item.classList.contains("is-open");
-
-      if (isOpen) {
-        closeAllSubmenus();
-      } else {
-        openSubmenu(item);
-      }
+      toggleSubmenu(item);
     });
 
-    // Handle mouseenter with debounce
-    item.addEventListener("mouseenter", () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => openSubmenu(item), 600);
-    });
-
-    // Handle mouseleave with debounce
-    item.addEventListener("mouseleave", () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => closeAllSubmenus(), 600);
-    });
-
-    // Close submenus on touchstart outside of .nav_links_item
-    navMenuWrap.addEventListener("touchstart", (e) => {
+    // Close submenus on touchstart or click outside of .nav_links_item
+    document.addEventListener("click", (e) => {
       if (!e.target.closest(".nav_links_item")) {
         closeAllSubmenus();
       }
