@@ -1018,17 +1018,16 @@ function accordions() {
     // Function to open an accordion section
     const openAccordion = (index) => {
       const header = headers[index];
-      const content = contents[index];
+      const content = contents[index];=
+
       if (images.length > 1) {
-        const image = Array.from(images).find((image) => {
-          return image.dataset.imageIndex == index + 1;
+        const targetIndex = header.dataset.imageIndex || index + 1;=
+        const image = Array.from(images).find((img) => img.dataset.imageIndex == targetIndex) || images[0];
+
+        images.forEach((img) => {
+          img.classList.remove("is-active");
         });
-        images.forEach((image) => {
-          image.classList.remove("is-active");
-        });
-        if (image) {
-          image.classList.add("is-active");
-        }
+        image.classList.add("is-active");
       }
 
       header.setAttribute("aria-expanded", "true");
