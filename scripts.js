@@ -1021,7 +1021,7 @@ function accordions() {
       const content = contents[index];
 
       if (images.length > 1) {
-        const targetIndex = header.dataset.imageIndex || index + 1;=
+        const targetIndex = header.dataset.imageIndex || index + 1;
         const image = Array.from(images).find((img) => img.dataset.imageIndex == targetIndex) || images[0];
 
         images.forEach((img) => {
