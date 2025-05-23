@@ -1018,7 +1018,7 @@ function accordions() {
     // Function to open an accordion section
     const openAccordion = (index) => {
       const header = headers[index];
-      const content = contents[index];=
+      const content = contents[index];
 
       if (images.length > 1) {
         const targetIndex = header.dataset.imageIndex || index + 1;=
