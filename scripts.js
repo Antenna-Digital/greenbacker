@@ -1114,39 +1114,41 @@ function odometers() {
       const statInit = function (statValues) {
         statValues.forEach(function (statVal, index) {
           const originalValue = statVal.innerHTML.trim();
-          const [integerPart, decimalPart] = originalValue.split(".");
-          const zeroIntegerPart = integerPart.replace(/\d/g, "0"); // Convert integer part to zeroes while preserving commas
-          const formattedZeroValue =
-            decimalPart !== undefined
-              ? `${zeroIntegerPart}.${"0".repeat(decimalPart.length)}`
-              : zeroIntegerPart; // Preserve decimal places if present
+          if (originalValue !== "") {
+            const [integerPart, decimalPart] = originalValue.split(".");
+            const zeroIntegerPart = integerPart.replace(/\d/g, "0"); // Convert integer part to zeroes while preserving commas
+            const formattedZeroValue =
+              decimalPart !== undefined
+                ? `${zeroIntegerPart}.${"0".repeat(decimalPart.length)}`
+                : zeroIntegerPart; // Preserve decimal places if present
 
-          statVal.innerHTML = formattedZeroValue; // Start from the correct number of digits
-          // console.log(
-          //   `Original: ${originalValue}, Zeroed: ${formattedZeroValue}`
-          // );
+            statVal.innerHTML = formattedZeroValue; // Start from the correct number of digits
+            // console.log(
+            //   `Original: ${originalValue}, Zeroed: ${formattedZeroValue}`
+            // );
 
-          var od = new Odometer({
-            el: statVal,
-            format: "(,ddd).dd",
-            value: formattedZeroValue,
-            duration: 3000,
-          });
-          var delay = index * 0.15;
-          gsap.to(statVal, {
-            ease: "none",
-            scrollTrigger: {
-              trigger: statVal,
-              start: "top 90%",
-              invalidateOnRefresh: !0,
-              scrub: 0,
-              onEnter: function onEnter() {
-                gsap.delayedCall(delay, function () {
-                  od.update(originalValue);
-                });
+            var od = new Odometer({
+              el: statVal,
+              format: "(,ddd).dd",
+              value: formattedZeroValue,
+              duration: 3000,
+            });
+            var delay = index * 0.15;
+            gsap.to(statVal, {
+              ease: "none",
+              scrollTrigger: {
+                trigger: statVal,
+                start: "top 90%",
+                invalidateOnRefresh: !0,
+                scrub: 0,
+                onEnter: function onEnter() {
+                  gsap.delayedCall(delay, function () {
+                    od.update(originalValue);
+                  });
+                },
               },
-            },
-          });
+            });
+          }
         });
       };
       statInit(statValues);
