@@ -2328,6 +2328,21 @@ function formStuff() {
   });
 }
 
+// Zoom-specific Stuff
+function zoomClasses() {
+  function detectZoom() {
+    const zoom = Math.round(window.devicePixelRatio * 100) / 2;
+    console.log(zoom);
+    document.body.classList.remove('zoom-67', 'zoom-80', 'zoom-90', 'zoom-110');
+    if (zoom === 66.5) document.body.classList.add('zoom-67');
+    if (zoom === 80) document.body.classList.add('zoom-80');
+    if (zoom === 90) document.body.classList.add('zoom-90');
+    if (zoom === 110) document.body.classList.add('zoom-110');
+  }
+  window.addEventListener('resize', detectZoom);
+  detectZoom();
+}
+
 // Init Function
 const init = () => {
   console.debug("%cRun init", "color: lightgreen;");
@@ -2353,8 +2368,9 @@ const init = () => {
   collectionPopups();
   teamList();
   formStuff();
-  $(window).on("resize", debounce(() => imageSrcSetFix(true), 200));
+  zoomClasses();
+  $(window).on("resize", debounce(() => imageSrcSetFix(false), 200));
 }; // end init
 
-$(document).on("ready", imageSrcSetFix(true));
+$(document).on("ready", imageSrcSetFix(false));
 $(window).on("load", init);
