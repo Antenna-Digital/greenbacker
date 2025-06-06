@@ -1733,7 +1733,7 @@ function initMaps() {
 
   setTimeout(() => {
     const projects = getProjectSitesData();
-    console.log(projects.length);
+    // console.log(projects.length);
 
     maps.forEach((mapInstance) => {
       const projectsMap = new google.maps.Map(mapInstance, {
@@ -2332,7 +2332,7 @@ function formStuff() {
 function zoomClasses() {
   function detectZoom() {
     const zoom = Math.round(window.devicePixelRatio * 100) / 2;
-    console.log(zoom);
+    // console.log(zoom);
     document.body.classList.remove('zoom-67', 'zoom-80', 'zoom-90', 'zoom-110');
     if (zoom === 66.5) document.body.classList.add('zoom-67');
     if (zoom === 80) document.body.classList.add('zoom-80');
@@ -2341,6 +2341,79 @@ function zoomClasses() {
   }
   window.addEventListener('resize', detectZoom);
   detectZoom();
+}
+
+// Share Class Tab Sync
+function shareClassTabSync() {
+  // Find all instances of the Returns Tables component
+  const components = document.querySelectorAll('.returns-tables_wrap');
+  if (!components.length) return;
+
+  components.forEach((component) => {
+    // Get the container that holds all share classes
+    const tableWrapper = component.querySelector('.returns-tables_classes_wrap');
+    if (!tableWrapper) return;
+
+    // Get each share class within the component
+    const classPanels = tableWrapper.querySelectorAll('.returns-tables_class_wrap');
+
+    classPanels.forEach((panel) => {
+      // Get all tab buttons for the current share class
+      const tabLinks = panel.querySelectorAll('.returns-tables_class_tab_link');
+
+      tabLinks.forEach((link, index) => {
+        // When a tab is clicked, sync that tab across other share classes
+        link.addEventListener('click', (e) => {
+          e.preventDefault(); // stop default scroll jump
+          const clickedText = link.textContent.trim();
+          syncTabs(clickedText, index, panel, classPanels);
+        });
+      });
+    });
+
+    // Sync tab state across all share classes in this component
+    function syncTabs(tabText, tabIndex, sourcePanel, allPanels) {
+      allPanels.forEach((panel) => {
+        // Skip the panel where the tab was originally clicked
+        if (panel === sourcePanel) return;
+
+        const tabLinks = panel.querySelectorAll('.returns-tables_class_tab_link');
+        const tabPanes = panel.querySelectorAll('.w-tab-pane');
+        let matched = false;
+
+        // Try to match by tab label text
+        tabLinks.forEach((link, i) => {
+          const label = link.textContent.trim();
+          if (label === tabText) {
+            activateTab(tabLinks, tabPanes, i);
+            matched = true;
+          }
+        });
+
+        // If no text match, try matching by index
+        if (!matched && tabLinks[tabIndex]) {
+          activateTab(tabLinks, tabPanes, tabIndex);
+          matched = true;
+        }
+
+        // If nothing matched, default to first tab
+        if (!matched) {
+          activateTab(tabLinks, tabPanes, 0);
+        }
+      });
+    }
+
+    // Manually activate a tab (set correct classes)
+    function activateTab(links, panes, index) {
+      links.forEach((l, i) => {
+        l.classList.toggle('w--current', i === index);
+      });
+
+      panes.forEach((p, i) => {
+        p.classList.toggle('w--tab-active', i === index);
+      });
+    }
+  });
 }
 
 // Init Function
@@ -2369,6 +2442,7 @@ const init = () => {
   teamList();
   formStuff();
   zoomClasses();
+  shareClassTabSync();
   $(window).on("resize", debounce(() => imageSrcSetFix(false), 200));
 }; // end init
 
