@@ -585,6 +585,7 @@ function menuOpenLogoAnimation() {
 function navAnimationOnScroll() {
   // Retrieve the initial value of --theme--text before any GSAP manipulation
   const navElement = document.querySelector(".nav_component");
+  if (!navElement) return;
   const initialTextColor = getComputedStyle(navElement)
     .getPropertyValue("--theme--text")
     .trim();
